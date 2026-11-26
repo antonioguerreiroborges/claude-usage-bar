@@ -8,7 +8,8 @@ use chrono::{Local, Utc};
 use eframe::egui::{self, Align2, Color32, CursorIcon, FontId, Rect, Sense, ViewportCommand};
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 
-use crate::fmt;
+use crate::alert;
+use crate::fmt::{self, Level};
 use crate::geom;
 use crate::store::{AccountInfo, Config, LastUsage};
 use crate::win::{self, MenuItem};
@@ -27,6 +28,7 @@ const ID_REFRESH: u32 = 1;
 const ID_USE_LIVE: u32 = 2;
 const ID_AUTOSTART: u32 = 3;
 const ID_QUIT: u32 = 4;
+const ID_SOUND: u32 = 5;
 
 pub struct App {
     cfg: Config,
@@ -42,6 +44,9 @@ pub struct App {
     /// redimensiona pela borda.
     width_pt: f32,
     resizing: bool,
+    /// Nível da última leitura nova; começa em `Low` para que um app que abre
+    /// já no âmbar ou no vermelho toque o aviso na primeira leitura.
+    alert_level: Level,
 }
 
 enum View {
@@ -61,6 +66,7 @@ impl App {
             account: cfg.account.clone(),
             width_pt: geom::clamp_width(cfg.width_pt.unwrap_or(geom::DEFAULT_WIDTH)),
             resizing: false,
+            alert_level: Level::Low,
             cfg,
             tx,
             rx,
@@ -84,6 +90,15 @@ impl App {
                 self.account = s.account;
             }
             if let Some(u) = s.usage {
+                let now = fmt::level(u.utilization);
+                if let Some(l) = alert::on_reading(self.alert_level, now) {
+                    if self.cfg.sound_alerts {
+                        if let Some(wav) = alert::sound(l) {
+                            win::play_wav(wav);
+                        }
+                    }
+                }
+                self.alert_level = now;
                 self.cfg.last = Some(u.clone());
                 self.usage = Some(u);
                 dirty = true;
@@ -299,6 +314,11 @@ impl App {
                 checked: false,
             },
             MenuItem::Action { id: ID_AUTOSTART, text: "Iniciar com o Windows", checked: autostart },
+            MenuItem::Action {
+                id: ID_SOUND,
+                text: "Avisos sonoros",
+                checked: self.cfg.sound_alerts,
+            },
             MenuItem::Separator,
             MenuItem::Action { id: ID_QUIT, text: "Sair", checked: false },
         ]);
@@ -312,7 +332,13 @@ impl App {
                 self.usage = None;
                 self.status = Status::Loading;
                 self.warn = None;
+                // A conta nova pode já estar alta: rearma os avisos.
+                self.alert_level = Level::Low;
                 let _ = self.tx.send(Cmd::UseLiveAccount);
+            }
+            ID_SOUND => {
+                self.cfg.sound_alerts = !self.cfg.sound_alerts;
+                self.cfg.save();
             }
             ID_AUTOSTART => {
                 if let Err(e) = win::set_autostart(!autostart) {

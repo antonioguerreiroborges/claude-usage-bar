@@ -10,14 +10,30 @@ pub const HIGH: Color32 = Color32::from_rgb(0xd0, 0x3b, 0x3b);
 pub const INK_LIGHT: Color32 = Color32::from_rgb(0xf0, 0xee, 0xe6);
 pub const INK_DARK: Color32 = Color32::from_rgb(0x20, 0x20, 0x1e);
 
+/// Faixa de uso: define a cor da barra e qual aviso sonoro toca.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Level {
+    Low,
+    Mid,
+    High,
+}
+
 /// Mesmos degraus da paleta dinâmica do widget antigo.
-pub fn level_color(pct: f64) -> Color32 {
+pub fn level(pct: f64) -> Level {
     if pct >= 85.0 {
-        HIGH
+        Level::High
     } else if pct >= 50.0 {
-        MID
+        Level::Mid
     } else {
-        LOW
+        Level::Low
+    }
+}
+
+pub fn level_color(pct: f64) -> Color32 {
+    match level(pct) {
+        Level::High => HIGH,
+        Level::Mid => MID,
+        Level::Low => LOW,
     }
 }
 
@@ -71,6 +87,16 @@ mod tests {
         assert_eq!(level_color(84.9), MID);
         assert_eq!(level_color(85.0), HIGH);
         assert_eq!(level_color(100.0), HIGH);
+    }
+
+    #[test]
+    fn level_steps() {
+        assert_eq!(level(0.0), Level::Low);
+        assert_eq!(level(49.9), Level::Low);
+        assert_eq!(level(50.0), Level::Mid);
+        assert_eq!(level(84.9), Level::Mid);
+        assert_eq!(level(85.0), Level::High);
+        assert_eq!(level(100.0), Level::High);
     }
 
     #[test]

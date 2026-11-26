@@ -33,8 +33,10 @@ cargo run --release
   - Atualizar agora;
   - Usar a conta atual do Claude Code;
   - Iniciar com o Windows;
+  - Avisos sonoros (ligado por padrão);
   - Sair.
 - A posição e a largura são lembradas.
+- **Avisos sonoros:** um alerta curto quando a barra fica âmbar (50%) e outro, mais alto e insistente, quando fica vermelha (85%). Toca só quando o nível sobe, inclusive na primeira leitura depois de abrir o app se ele já estiver âmbar ou vermelho. Os sons são gerados pelo próprio app.
 
 ## Como a conta é lida
 

@@ -9,6 +9,7 @@ use windows::Win32::Foundation::{
     WPARAM,
 };
 use windows::Win32::Graphics::Gdi::{MonitorFromPoint, MONITOR_DEFAULTTONULL};
+use windows::Win32::Media::Audio::{PlaySoundW, SND_ASYNC, SND_MEMORY, SND_NODEFAULT};
 use windows::Win32::Security::Cryptography::{
     CryptProtectData, CryptUnprotectData, CRYPT_INTEGER_BLOB,
 };
@@ -45,6 +46,21 @@ pub fn single_instance() -> bool {
             Ok(_) => GetLastError() != ERROR_ALREADY_EXISTS,
             Err(_) => true,
         }
+    }
+}
+
+/// Toca um WAV da memória sem bloquear. O buffer é `'static` porque o
+/// `SND_ASYNC` continua lendo dele depois que a chamada retorna.
+pub fn play_wav(data: &'static [u8]) {
+    let ok = unsafe {
+        PlaySoundW(
+            PCWSTR(data.as_ptr() as *const u16),
+            None,
+            SND_MEMORY | SND_ASYNC | SND_NODEFAULT,
+        )
+    };
+    if !ok.as_bool() {
+        log::warn!("não foi possível tocar o aviso sonoro");
     }
 }
 

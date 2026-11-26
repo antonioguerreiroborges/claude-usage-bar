@@ -88,6 +88,8 @@ pub struct Config {
     /// `width` em pixels é ignorado ao carregar.
     pub width_pt: Option<f32>,
     pub refresh_secs: u64,
+    /// Aviso sonoro ao entrar no âmbar e no vermelho.
+    pub sound_alerts: bool,
     pub account: Option<AccountInfo>,
     pub last: Option<LastUsage>,
 }
@@ -99,6 +101,7 @@ impl Default for Config {
             y: None,
             width_pt: None,
             refresh_secs: 180,
+            sound_alerts: true,
             account: None,
             last: None,
         }
@@ -148,5 +151,18 @@ pub fn save_login<T: Serialize>(login: &T) {
         .and_then(|sealed| write_atomic(&login_path(), &sealed).map_err(|e| e.to_string()));
     if let Err(e) = r {
         log::error!("falha ao salvar login.bin: {e}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn old_config_keeps_sound_alerts_on() {
+        let cfg: Config = serde_json::from_str(r#"{"x": 10, "refresh_secs": 60}"#).unwrap();
+        assert!(cfg.sound_alerts);
+        let off: Config = serde_json::from_str(r#"{"sound_alerts": false}"#).unwrap();
+        assert!(!off.sound_alerts);
     }
 }

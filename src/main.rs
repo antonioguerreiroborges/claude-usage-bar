@@ -1,5 +1,6 @@
 #![windows_subsystem = "windows"]
 
+mod alert;
 mod app;
 mod auth;
 mod fmt;

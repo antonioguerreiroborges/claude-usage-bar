@@ -27,6 +27,7 @@ Módulos de apoio:
 - `store.rs`: `config.json`, `login.bin`, `app.log`, escrita atômica (`write_atomic`).
 - `win.rs`: tudo que é Win32 (mutex de instância única, janela tool/topmost, menu popup, autostart no registro, DPAPI `protect`/`unprotect`).
 - `geom.rs`: largura em pontos lógicos, independente de DPI (guardar pixels físicos fazia a janela crescer 25% a cada abertura em monitor 125%).
+- `alert.rs`: avisos sonoros. `App::drain` compara o nível da leitura nova com o anterior (`on_reading`) e toca só quando sobe; os WAVs são sintetizados em código e tocados da memória por `win::play_wav` (`PlaySoundW`). `cargo test plays_both_sounds -- --ignored` toca os dois para conferir de ouvido.
 - `fmt.rs`: porcentagem, tempo restante e cores por nível (<50% azul, 50–84% âmbar, ≥85% vermelho).
 
 ## Commits

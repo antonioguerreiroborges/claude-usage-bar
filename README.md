@@ -56,3 +56,7 @@ Ficam em `%LOCALAPPDATA%\UsageBarRs\`:
 | `app.log` | log; tokens só aparecem como fingerprint SHA-256 |
 
 Os testes podem apontar para outro arquivo de credenciais com a variável `USAGE_BAR_CRED`.
+
+## Licença
+
+[MIT](LICENSE).
